@@ -1,12 +1,12 @@
 # Family Habit Tracker
 
-This project keeps the existing single-file front end in [`Web-App.html`](/C:/Family%20Habit%20Tracker/Web-App.html) and adds Vercel API routes that store data in Google Sheets.
+This project serves the front end from [`index.html`](/C:/Family%20Habit%20Tracker/index.html) and keeps the original copy in [`Web-App.html`](/C:/Family%20Habit%20Tracker/Web-App.html). It also adds Vercel API routes that store data in Google Sheets.
 
 ## What changed
 
 - The browser now tries to load/save data through `/api/data`, `/api/toggle`, and `/api/save-settings`.
 - If the API is unavailable, the app falls back to `localStorage` so the file still works locally.
-- Vercel rewrites `/` to `Web-App.html`, so you do not need to rename the original file.
+- Vercel serves `index.html` directly, which is the simplest deployment shape for static hosting.
 
 ## Google Sheets setup
 
@@ -49,4 +49,4 @@ npm install
 vercel dev
 ```
 
-If you open `Web-App.html` directly in the browser, the app will fall back to local storage when the API is not reachable.
+If you open `index.html` or `Web-App.html` directly in the browser, the app will fall back to local storage when the API is not reachable.

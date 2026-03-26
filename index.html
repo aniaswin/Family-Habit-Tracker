@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Habit Quest 🏆</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0e17;
+  --surface: #1a1932;
+  --surface2: #232146;
+  --accent1: #ff6b6b;
+  --accent2: #ffd93d;
+  --accent3: #6bcb77;
+  --accent4: #4d96ff;
+  --accent5: #c77dff;
+  --text: #fffffe;
+  --text-dim: #a7a9be;
+  --gold: #ffd93d;
+  --silver: #c0c0c0;
+  --bronze: #cd7f32;
+  --glow-gold: 0 0 20px rgba(255,217,61,0.4);
+  --glow-green: 0 0 15px rgba(107,203,119,0.3);
+  --glow-red: 0 0 15px rgba(255,107,107,0.3);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(77,150,255,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(199,125,255,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255,107,107,0.05) 0%, transparent 50%);
+  z-index: 0;
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.app { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* Header */
+.header {
+  text-align: center;
+  padding: 30px 20px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.header h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 3em;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent2), var(--accent1), var(--accent5));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  animation: titleShimmer 3s ease-in-out infinite;
+  letter-spacing: -1px;
+}
+
+@keyframes titleShimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+}
+
+.header p {
+  color: var(--text-dim);
+  font-size: 1.1em;
+  margin-top: 8px;
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.nav-tab {
+  padding: 12px 24px;
+  border: 2px solid var(--surface2);
+  border-radius: 50px;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-tab:hover {
+  border-color: var(--accent4);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+.nav-tab.active {
+  background: linear-gradient(135deg, var(--accent4), var(--accent5));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 20px rgba(77,150,255,0.3);
+}
+
+/* Member Selector */
+.member-selector {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.member-card {
+  background: var(--surface);
+  border: 3px solid var(--surface2);
+  border-radius: 20px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--member-color);
+}
+
+.member-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.member-card.active {
+  border-color: var(--member-color);
+  box-shadow: 0 0 25px color-mix(in srgb, var(--member-color) 30%, transparent);
+}
+
+.member-avatar {
+  font-size: 2.5em;
+  margin-bottom: 6px;
+}
+
+.member-name {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.member-points {
+  font-size: 0.85em;
+  color: var(--accent2);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Week Navigator */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.week-nav button {
+  background: var(--surface);
+  border: 2px solid var(--surface2);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.week-nav button:hover {
+  background: var(--accent4);
+  border-color: var(--accent4);
+}
+
+.week-label {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* Habit Tracker Grid */
+.habit-section { margin-bottom: 30px; }
+
+.habit-grid {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 24px;
+  overflow-x: auto;
+  border: 1px solid var(--surface2);
+}
+
+.habit-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 4px;
+  min-width: 700px;
+}
+
+.habit-table th {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  padding: 10px 8px;
+  color: var(--text-dim);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.habit-table th.today-col {
+  color: var(--accent2);
+  position: relative;
+}
+
+.habit-table th.today-col::after {
+  content: '✦';
+  font-size: 0.7em;
+  margin-left: 4px;
+}
+
+.habit-table td {
+  padding: 6px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.habit-name-cell {
+  text-align: left !important;
+  padding-left: 12px !important;
+  font-weight: 600;
+  font-size: 0.95em;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habit-points {
+  font-size: 0.75em;
+  color: var(--accent2);
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.check-cell {
+  width: 52px;
+  height: 52px;
+}
+
+.check-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid var(--surface2);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4em;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.check-btn:hover {
+  border-color: var(--accent3);
+  transform: scale(1.1);
+}
+
+.check-btn.checked {
+  background: linear-gradient(135deg, #2d8f47, var(--accent3));
+  border-color: var(--accent3);
+  box-shadow: var(--glow-green);
+  animation: popIn 0.4s ease;
+}
+
+.check-btn.unchecked {
+  background: var(--bg);
+  border-color: var(--surface2);
+}
+
+.check-btn.past-unchecked {
+  background: rgba(255,107,107,0.1);
+  border-color: rgba(255,107,107,0.3);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.6); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Daily Summary Row */
+.daily-summary td {
+  padding-top: 12px !important;
+  border-top: 2px solid var(--surface2);
+}
+
+.daily-score {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 0.9em;
+}
+
+.daily-score.perfect {
+  color: var(--accent2);
+  text-shadow: 0 0 10px rgba(255,217,61,0.5);
+}
+
+/* Leaderboard */
+.leaderboard {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid var(--surface2);
+}
+
+.leaderboard-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.8em;
+  text-align: center;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, var(--gold), var(--accent1));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 30px;
+  padding: 20px 0;
+}
+
+.podium-spot {
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.podium-bar {
+  border-radius: 16px 16px 0 0;
+  padding: 20px 24px 16px;
+  min-width: 140px;
+  position: relative;
+}
+
+.podium-spot:nth-child(1) .podium-bar { /* 2nd place */
+  background: linear-gradient(180deg, rgba(192,192,192,0.2), rgba(192,192,192,0.05));
+  border: 2px solid rgba(192,192,192,0.3);
+  border-bottom: none;
+  height: 140px;
+}
+
+.podium-spot:nth-child(2) .podium-bar { /* 1st place */
+  background: linear-gradient(180deg, rgba(255,217,61,0.2), rgba(255,217,61,0.05));
+  border: 2px solid rgba(255,217,61,0.4);
+  border-bottom: none;
+  height: 180px;
+  box-shadow: var(--glow-gold);
+}
+
+.podium-spot:nth-child(3) .podium-bar { /* 3rd place */
+  background: linear-gradient(180deg, rgba(205,127,50,0.2), rgba(205,127,50,0.05));
+  border: 2px solid rgba(205,127,50,0.3);
+  border-bottom: none;
+  height: 110px;
+}
+
+.podium-rank {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.podium-avatar {
+  font-size: 2.5em;
+  margin-bottom: 6px;
+}
+
+.podium-name {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.podium-score {
+  font-size: 1.2em;
+  font-weight: 800;
+  color: var(--accent2);
+  margin-top: 4px;
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--surface2);
+  transition: all 0.3s;
+}
+
+.rank-item:hover {
+  transform: translateX(4px);
+  border-color: var(--accent4);
+}
+
+.rank-number {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.5em;
+  font-weight: 700;
+  width: 40px;
+  text-align: center;
+}
+
+.rank-item:nth-child(1) .rank-number { color: var(--gold); }
+.rank-item:nth-child(2) .rank-number { color: var(--silver); }
+.rank-item:nth-child(3) .rank-number { color: var(--bronze); }
+
+.rank-avatar { font-size: 2em; }
+.rank-info { flex: 1; }
+.rank-name { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.1em; }
+.rank-details { font-size: 0.85em; color: var(--text-dim); margin-top: 2px; }
+
+.rank-score {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.4em;
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+.rank-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 16px;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s ease;
+}
+
+/* Settings */
+.settings-panel {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 30px;
+  border: 1px solid var(--surface2);
+}
+
+.settings-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.5em;
+  margin-bottom: 20px;
+}
+
+.member-settings {
+  margin-bottom: 30px;
+  background: var(--bg);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid var(--surface2);
+}
+
+.member-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.habit-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.habit-input-row input[type="text"] {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid var(--surface2);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95em;
+}
+
+.habit-input-row input[type="number"] {
+  width: 70px;
+  padding: 10px;
+  border: 2px solid var(--surface2);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--accent2);
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.95em;
+}
+
+.habit-input-row input:focus {
+  outline: none;
+  border-color: var(--accent4);
+}
+
+.btn-remove {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,107,107,0.15);
+  color: var(--accent1);
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-remove:hover {
+  background: var(--accent1);
+  color: white;
+}
+
+.btn-add {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 2px dashed var(--surface2);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.btn-add:hover {
+  border-color: var(--accent3);
+  color: var(--accent3);
+}
+
+.btn-save {
+  padding: 14px 40px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent3), #2d8f47);
+  color: white;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: block;
+  margin: 20px auto 0;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107,203,119,0.4);
+}
+
+/* Confetti */
+.confetti-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -10px;
+  animation: confettiFall 3s ease-out forwards;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+/* Streak Badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(255,217,61,0.2));
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 700;
+  color: var(--accent2);
+  margin-top: 6px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--surface);
+  border: 2px solid var(--accent3);
+  border-radius: 16px;
+  padding: 16px 28px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1em;
+  font-weight: 600;
+  z-index: 999;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  transition: transform 0.4s ease;
+  white-space: nowrap;
+}
+
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Export button */
+.export-section {
+  text-align: center;
+  margin-top: 20px;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--surface2);
+}
+
+.btn-export {
+  padding: 12px 30px;
+  border-radius: 50px;
+  border: 2px solid var(--accent4);
+  background: transparent;
+  color: var(--accent4);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 4px;
+}
+
+.btn-export:hover {
+  background: var(--accent4);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header h1 { font-size: 2em; }
+  .member-selector { gap: 10px; }
+  .member-card { min-width: 80px; padding: 12px 14px; }
+  .member-avatar { font-size: 1.8em; }
+  .member-name { font-size: 0.9em; }
+  .podium { flex-wrap: wrap; }
+  .podium-bar { min-width: 100px; }
+  .habit-grid { padding: 14px; }
+  .app { padding: 12px; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent4); }
+
+/* "All Members" view in tracker */
+.all-members-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.member-section-label {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.2em;
+  font-weight: 600;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.completion-ring {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8em;
+  color: var(--accent3);
+  background: rgba(107,203,119,0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="header">
+    <h1>⚡ Family Habit Quest ⚡</h1>
+    <p>Complete habits. Earn points. Become the champion!</p>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-view="tracker">📋 Tracker</button>
+    <button class="nav-tab" data-view="leaderboard">🏆 Leaderboard</button>
+    <button class="nav-tab" data-view="settings">⚙️ Settings</button>
+  </nav>
+
+  <div id="view-tracker">
+    <div class="member-selector" id="memberSelector"></div>
+    <div class="week-nav">
+      <button id="prevWeek">◀</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button id="nextWeek">▶</button>
+    </div>
+    <div class="habit-section">
+      <div id="trackerContent"></div>
+    </div>
+  </div>
+
+  <div id="view-leaderboard" class="hidden">
+    <div class="week-nav">
+      <button id="prevWeekLB">◀</button>
+      <span class="week-label" id="weekLabelLB"></span>
+      <button id="nextWeekLB">▶</button>
+    </div>
+    <div class="leaderboard" id="leaderboardContent"></div>
+  </div>
+
+  <div id="view-settings" class="hidden">
+    <div class="settings-panel" id="settingsContent"></div>
+    <div class="export-section">
+      <p style="color:var(--text-dim);margin-bottom:12px;font-family:'Fredoka',sans-serif;">📊 Export Data</p>
+      <button class="btn-export" id="exportCSV">Export as CSV</button>
+      <button class="btn-export" id="exportJSON">Export as JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confetti-container" id="confetti"></div>
+
+<script>
+// ========== DATA LAYER ==========
+const STORAGE_KEY = 'family_habit_quest';
+const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const FULL_DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+const DEFAULT_DATA = {
+  members: [
+    {
+      id: 'kabir',
+      name: 'Kabir',
+      avatar: '🦸‍♂️',
+      color: '#4d96ff',
+      habits: [
+        { id: 'h1', name: 'Brush teeth (morning)', points: 5 },
+        { id: 'h2', name: 'Brush teeth (night)', points: 5 },
+        { id: 'h3', name: 'Read for 20 mins', points: 15 },
+        { id: 'h4', name: 'Practice writing', points: 10 },
+        { id: 'h5', name: 'Eat fruits/veggies', points: 10 },
+        { id: 'h6', name: 'Tidy up toys', points: 10 },
+        { id: 'h7', name: 'No screen before bed', points: 15 },
+        { id: 'h8', name: 'Be kind to Mihir', points: 10 },
+        { id: 'h9', name: 'Drink 5 glasses water', points: 10 },
+        { id: 'h10', name: 'Say please & thank you', points: 10 },
+      ]
+    },
+    {
+      id: 'mihir',
+      name: 'Mihir',
+      avatar: '👶',
+      color: '#c77dff',
+      habits: [
+        { id: 'h1', name: 'Nap on schedule', points: 15 },
+        { id: 'h2', name: 'Eat full meals', points: 15 },
+        { id: 'h3', name: 'Playtime activity', points: 10 },
+        { id: 'h4', name: 'Outdoor time', points: 15 },
+        { id: 'h5', name: 'Bath time', points: 10 },
+      ]
+    },
+    {
+      id: 'anish',
+      name: 'Anish',
+      avatar: '🚀',
+      color: '#ff6b6b',
+      habits: [
+        { id: 'h1', name: 'Morning workout', points: 20 },
+        { id: 'h2', name: 'Read 30 mins', points: 15 },
+        { id: 'h3', name: 'No phone at meals', points: 10 },
+        { id: 'h4', name: 'Meditate 10 mins', points: 15 },
+        { id: 'h5', name: 'Journal / reflect', points: 10 },
+        { id: 'h6', name: 'Sleep by 11 PM', points: 15 },
+        { id: 'h7', name: 'Walk 8000 steps', points: 15 },
+        { id: 'h8', name: 'Drink 3L water', points: 10 },
+        { id: 'h9', name: 'Quality time with kids', points: 15 },
+        { id: 'h10', name: 'Plan tomorrow', points: 10 },
+      ]
+    },
+    {
+      id: 'spouse',
+      name: 'Partner',
+      avatar: '💫',
+      color: '#ffd93d',
+      habits: [
+        { id: 'h1', name: 'Morning routine', points: 15 },
+        { id: 'h2', name: 'Exercise / yoga', points: 20 },
+        { id: 'h3', name: 'Read 20 mins', points: 15 },
+        { id: 'h4', name: 'Healthy meals prep', points: 10 },
+        { id: 'h5', name: 'No phone at meals', points: 10 },
+        { id: 'h6', name: 'Self-care time', points: 15 },
+        { id: 'h7', name: 'Quality time with kids', points: 15 },
+        { id: 'h8', name: 'Sleep by 11 PM', points: 15 },
+        { id: 'h9', name: 'Drink 3L water', points: 10 },
+        { id: 'h10', name: 'Gratitude practice', points: 10 },
+      ]
+    }
+  ],
+  completions: {} // { "memberId:habitId:YYYY-MM-DD": true }
+};
+
+let appData;
+let currentView = 'tracker';
+let selectedMember = 'kabir';
+let currentWeekOffset = 0;
+let dataSource = 'remote';
+let savePromise = Promise.resolve();
+
+function cloneDefaultData() {
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function normalizeData(data) {
+  const next = data && typeof data === 'object' ? data : cloneDefaultData();
+  next.members = Array.isArray(next.members) ? next.members : [];
+  next.completions = next.completions && typeof next.completions === 'object' ? next.completions : {};
+
+  next.members = next.members.map(member => ({
+    id: member.id || ('member_' + Date.now()),
+    name: member.name || 'Member',
+    avatar: member.avatar || '🙂',
+    color: member.color || '#4d96ff',
+    habits: Array.isArray(member.habits) ? member.habits.map(habit => ({
+      id: habit.id || ('h' + Date.now()),
+      name: habit.name || 'Habit',
+      points: Math.max(1, parseInt(habit.points, 10) || 1)
+    })) : []
+  }));
+
+  if (!next.members.length) {
+    return cloneDefaultData();
+  }
+
+  return next;
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(path, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  if (!response.ok) {
+    let message = `Request failed: ${response.status}`;
+    try {
+      const payload = await response.json();
+      if (payload && payload.error) message = payload.error;
+    } catch (e) {
+      // Keep the default message if the error body is not JSON.
+    }
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+async function loadData() {
+  try {
+    const remoteData = await apiRequest('/api/data');
+    appData = normalizeData(remoteData);
+    dataSource = 'remote';
+  } catch (remoteError) {
+    console.warn('Remote load failed, falling back to local storage.', remoteError);
+    dataSource = 'local';
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        appData = normalizeData(JSON.parse(saved));
+      } else {
+        appData = cloneDefaultData();
+      }
+    } catch (localError) {
+      console.warn('Local load failed, using default data.', localError);
+      appData = cloneDefaultData();
+    }
+  }
+}
+
+function saveData() {
+  savePromise = savePromise.then(async () => {
+    const snapshot = normalizeData(appData);
+    appData = snapshot;
+
+    if (dataSource === 'remote') {
+      try {
+        await apiRequest('/api/save-settings', {
+          method: 'POST',
+          body: JSON.stringify(snapshot)
+        });
+        return;
+      } catch (remoteError) {
+        console.warn('Remote save failed, falling back to local storage.', remoteError);
+        dataSource = 'local';
+        showToast('Cloud sync unavailable. Saving locally for now.');
+      }
+    }
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch (localError) {
+      console.warn('Local save failed', localError);
+    }
+  });
+
+  return savePromise;
+}
+
+function getWeekDates(offset = 0) {
+  const now = new Date();
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset + (offset * 7));
+  monday.setHours(0,0,0,0);
+  
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+
+function dateKey(d) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function isToday(d) {
+  const today = new Date();
+  return d.toDateString() === today.toDateString();
+}
+
+function isPast(d) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return d < today;
+}
+
+function isFuture(d) {
+  const today = new Date();
+  today.setHours(23,59,59,999);
+  return d > today;
+}
+
+function completionKey(memberId, habitId, date) {
+  return `${memberId}:${habitId}:${dateKey(date)}`;
+}
+
+function isCompleted(memberId, habitId, date) {
+  return !!appData.completions[completionKey(memberId, habitId, date)];
+}
+
+async function toggleCompletion(memberId, habitId, date) {
+  if (dataSource === 'remote') {
+    try {
+      const updated = await apiRequest('/api/toggle', {
+        method: 'POST',
+        body: JSON.stringify({
+          memberId,
+          habitId,
+          date: dateKey(date)
+        })
+      });
+      appData = normalizeData(updated);
+      return;
+    } catch (remoteError) {
+      console.warn('Remote toggle failed, falling back to local save.', remoteError);
+      dataSource = 'local';
+      showToast('Cloud sync unavailable. Saving locally for now.');
+    }
+  }
+
+  const key = completionKey(memberId, habitId, date);
+  if (appData.completions[key]) {
+    delete appData.completions[key];
+  } else {
+    appData.completions[key] = true;
+  }
+  await saveData();
+}
+
+function getMemberWeeklyPoints(memberId, weekOffset) {
+  const dates = getWeekDates(weekOffset);
+  const member = appData.members.find(m => m.id === memberId);
+  if (!member) return 0;
+  let total = 0;
+  dates.forEach(d => {
+    member.habits.forEach(h => {
+      if (isCompleted(memberId, h.id, d)) total += h.points;
+    });
+  });
+  return total;
+}
+
+function getMemberMaxPoints(memberId) {
+  const member = appData.members.find(m => m.id === memberId);
+  if (!member) return 0;
+  return member.habits.reduce((sum, h) => sum + h.points, 0) * 7;
+}
+
+function getMemberDayPoints(memberId, date) {
+  const member = appData.members.find(m => m.id === memberId);
+  if (!member) return { earned: 0, max: 0 };
+  let earned = 0;
+  const max = member.habits.reduce((s, h) => s + h.points, 0);
+  member.habits.forEach(h => {
+    if (isCompleted(memberId, h.id, date)) earned += h.points;
+  });
+  return { earned, max };
+}
+
+// ========== UI RENDERING ==========
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function fireConfetti() {
+  const container = document.getElementById('confetti');
+  const colors = ['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#c77dff','#ff9a3c'];
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.innerHTML = '', 4000);
+}
+
+function renderMemberSelector() {
+  const container = document.getElementById('memberSelector');
+  container.innerHTML = '';
+  
+  appData.members.forEach(m => {
+    const pts = getMemberWeeklyPoints(m.id, currentWeekOffset);
+    const card = document.createElement('div');
+    card.className = `member-card ${selectedMember === m.id ? 'active' : ''}`;
+    card.style.setProperty('--member-color', m.color);
+    card.innerHTML = `
+      <div class="member-avatar">${m.avatar}</div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-points">⚡ ${pts} pts</div>
+    `;
+    card.onclick = () => {
+      selectedMember = m.id;
+      render();
+    };
+    container.appendChild(card);
+  });
+}
+
+function renderTracker() {
+  const container = document.getElementById('trackerContent');
+  const dates = getWeekDates(currentWeekOffset);
+  const member = appData.members.find(m => m.id === selectedMember);
+  if (!member) return;
+
+  let html = '<div class="habit-grid"><table class="habit-table">';
+  
+  // Header
+  html += '<thead><tr><th style="text-align:left;min-width:180px;">Habit</th>';
+  dates.forEach(d => {
+    const cls = isToday(d) ? 'today-col' : '';
+    html += `<th class="${cls}">${DAY_NAMES[d.getDay() === 0 ? 6 : d.getDay()-1]}<br><span style="font-size:0.8em;opacity:0.6;">${d.getDate()}</span></th>`;
+  });
+  html += '<th>Total</th></tr></thead><tbody>';
+
+  // Habit rows
+  member.habits.forEach(h => {
+    html += '<tr>';
+    html += `<td class="habit-name-cell">${h.name}<span class="habit-points">+${h.points}</span></td>`;
+    
+    let habitTotal = 0;
+    dates.forEach(d => {
+      const done = isCompleted(member.id, h.id, d);
+      const future = isFuture(d);
+      const past = isPast(d) && !isToday(d);
+      
+      if (done) habitTotal += h.points;
+      
+      let btnClass = 'check-btn';
+      let content = '';
+      
+      if (done) {
+        btnClass += ' checked';
+        content = '✓';
+      } else if (future) {
+        btnClass += ' unchecked';
+        content = '';
+      } else if (past) {
+        btnClass += ' past-unchecked';
+        content = '✗';
+      } else {
+        btnClass += ' unchecked';
+        content = '';
+      }
+      
+      const disabled = future ? 'style="opacity:0.3;pointer-events:none;"' : '';
+      
+      html += `<td class="check-cell"><button class="${btnClass}" ${disabled} data-member="${member.id}" data-habit="${h.id}" data-date="${dateKey(d)}">${content}</button></td>`;
+    });
+    
+    html += `<td><span style="font-family:'Fredoka';font-weight:700;color:var(--accent2);">${habitTotal}</span></td>`;
+    html += '</tr>';
+  });
+
+  // Daily summary row
+  html += '<tr class="daily-summary"><td style="font-family:\'Fredoka\';font-weight:600;color:var(--text-dim);">Daily Score</td>';
+  dates.forEach(d => {
+    const { earned, max } = getMemberDayPoints(member.id, d);
+    const perfect = earned === max && earned > 0;
+    html += `<td><span class="daily-score ${perfect ? 'perfect' : ''}">${earned}/${max}${perfect ? ' 🌟' : ''}</span></td>`;
+  });
+  const weekTotal = getMemberWeeklyPoints(member.id, currentWeekOffset);
+  const weekMax = getMemberMaxPoints(member.id);
+  html += `<td><span class="daily-score" style="color:var(--accent4);font-size:1.1em;">${weekTotal}</span></td>`;
+  html += '</tr>';
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+
+  // Attach click handlers
+  container.querySelectorAll('.check-btn:not([style*="pointer-events:none"])').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const mid = this.dataset.member;
+      const hid = this.dataset.habit;
+      const [yy, mm, dd] = this.dataset.date.split('-').map(Number);
+      const dt = new Date(yy, mm - 1, dd);
+      
+      const wasCompleted = isCompleted(mid, hid, dt);
+      await toggleCompletion(mid, hid, dt);
+      
+      if (!wasCompleted) {
+        // Check if all habits completed for this day
+        const m = appData.members.find(x => x.id === mid);
+        const allDone = m.habits.every(h => isCompleted(mid, h.id, dt));
+        if (allDone) {
+          fireConfetti();
+          showToast(`🌟 ${m.name} completed ALL habits! AMAZING! 🌟`);
+        } else {
+          showToast(`✅ +${m.habits.find(h=>h.id===hid).points} points! Keep going!`);
+        }
+      }
+      
+      render();
+    });
+  });
+}
+
+function renderWeekLabel() {
+  const dates = getWeekDates(currentWeekOffset);
+  const start = dates[0];
+  const end = dates[6];
+  const opts = { month: 'short', day: 'numeric' };
+  const label = `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
+  
+  const suffix = currentWeekOffset === 0 ? ' (This Week)' : currentWeekOffset === -1 ? ' (Last Week)' : '';
+  
+  document.getElementById('weekLabel').textContent = label + suffix;
+  document.getElementById('weekLabelLB').textContent = label + suffix;
+}
+
+function renderLeaderboard() {
+  const container = document.getElementById('leaderboardContent');
+  
+  const rankings = appData.members.map(m => ({
+    ...m,
+    weekPoints: getMemberWeeklyPoints(m.id, currentWeekOffset),
+    maxPoints: getMemberMaxPoints(m.id),
+    completionRate: getMemberMaxPoints(m.id) > 0 
+      ? Math.round((getMemberWeeklyPoints(m.id, currentWeekOffset) / getMemberMaxPoints(m.id)) * 100) 
+      : 0
+  })).sort((a, b) => b.weekPoints - a.weekPoints);
+
+  const maxPts = Math.max(...rankings.map(r => r.weekPoints), 1);
+  const medals = ['🥇','🥈','🥉','4️⃣'];
+  const barColors = ['var(--gold)','var(--silver)','var(--bronze)','var(--accent4)'];
+
+  let html = '<h2 class="leaderboard-title">🏆 Weekly Champions 🏆</h2>';
+  
+  html += '<div class="rank-list">';
+  rankings.forEach((r, i) => {
+    const pct = maxPts > 0 ? (r.weekPoints / maxPts * 100) : 0;
+    html += `
+      <div class="rank-item">
+        <div class="rank-number">${medals[i] || (i+1)}</div>
+        <div class="rank-avatar">${r.avatar}</div>
+        <div class="rank-info">
+          <div class="rank-name">${r.name}</div>
+          <div class="rank-details">${r.completionRate}% completion · ${r.habits.length} habits</div>
+        </div>
+        <div class="rank-bar-bg">
+          <div class="rank-bar-fill" style="width:${pct}%;background:${barColors[i] || 'var(--accent4)'}"></div>
+        </div>
+        <div class="rank-score">${r.weekPoints}</div>
+      </div>`;
+  });
+  html += '</div>';
+
+  // Fun stats
+  html += '<div style="margin-top:24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">';
+  
+  const totalPts = rankings.reduce((s,r) => s + r.weekPoints, 0);
+  const avgCompletion = Math.round(rankings.reduce((s,r) => s + r.completionRate, 0) / rankings.length);
+  
+  const stats = [
+    { emoji: '⚡', label: 'Family Points', value: totalPts },
+    { emoji: '📊', label: 'Avg Completion', value: avgCompletion + '%' },
+    { emoji: '👑', label: 'Leader', value: rankings[0]?.name || '-' },
+    { emoji: '🔥', label: 'Top Score', value: rankings[0]?.weekPoints || 0 },
+  ];
+  
+  stats.forEach(s => {
+    html += `<div style="background:var(--bg);border-radius:14px;padding:16px;text-align:center;border:1px solid var(--surface2);">
+      <div style="font-size:1.5em;">${s.emoji}</div>
+      <div style="font-family:'Fredoka';font-size:1.3em;font-weight:700;color:var(--accent2);margin:4px 0;">${s.value}</div>
+      <div style="font-size:0.8em;color:var(--text-dim);">${s.label}</div>
+    </div>`;
+  });
+  html += '</div>';
+  
+  container.innerHTML = html;
+}
+
+function renderSettings() {
+  const container = document.getElementById('settingsContent');
+  const AVATAR_OPTIONS = ['🦸‍♂️','👶','🚀','💫','🧑‍🚀','🦊','🐯','🦁','🐸','🌟','🎯','🔥','💎','🦄','🐻','🎮','⚡','🌈','🏆','👑','🧙‍♂️','🧚','🤖','🐉'];
+  
+  let html = '<h2 class="settings-title">⚙️ Manage Family & Habits</h2>';
+  html += '<p style="color:var(--text-dim);margin-bottom:20px;">Edit names, avatars, habits, and points. Add or remove family members.</p>';
+  
+  appData.members.forEach(m => {
+    html += `<div class="member-settings">
+      <div class="member-settings-header" style="flex-wrap:wrap;gap:10px;">
+        <div style="position:relative;">
+          <button class="avatar-picker-btn" data-member="${m.id}" title="Change avatar" style="font-size:2em;background:var(--surface2);border:2px solid var(--surface2);border-radius:12px;padding:4px 8px;cursor:pointer;transition:all 0.2s;">${m.avatar}</button>
+          <div class="avatar-picker hidden" id="avatar-picker-${m.id}" style="position:absolute;top:100%;left:0;z-index:50;background:var(--surface);border:2px solid var(--surface2);border-radius:14px;padding:10px;display:grid;grid-template-columns:repeat(6,1fr);gap:4px;box-shadow:0 10px 30px rgba(0,0,0,0.5);min-width:220px;">
+            ${AVATAR_OPTIONS.map(a => `<button class="avatar-option" data-member="${m.id}" data-avatar="${a}" style="font-size:1.4em;background:${a === m.avatar ? 'var(--accent4)' : 'var(--bg)'};border:1px solid var(--surface2);border-radius:8px;padding:6px;cursor:pointer;transition:all 0.15s;">${a}</button>`).join('')}
+          </div>
+        </div>
+        <input type="text" value="${m.name}" data-member="${m.id}" data-field="member-name" 
+          style="font-family:'Fredoka',sans-serif;font-size:1.1em;font-weight:600;background:var(--surface);border:2px solid var(--surface2);border-radius:10px;padding:6px 12px;color:var(--text);width:150px;" />
+        <span style="font-size:0.7em;color:var(--text-dim);margin-left:auto;">${m.habits.length} habits · ${m.habits.reduce((s,h)=>s+h.points,0)} pts/day</span>
+        <button class="btn-delete-member" data-member="${m.id}" title="Remove ${m.name}" 
+          style="background:rgba(255,107,107,0.1);border:2px solid rgba(255,107,107,0.3);color:var(--accent1);border-radius:10px;padding:6px 14px;font-family:'Fredoka',sans-serif;font-size:0.85em;font-weight:600;cursor:pointer;transition:all 0.2s;">🗑️ Remove</button>
+      </div>`;
+    
+    m.habits.forEach((h, idx) => {
+      html += `<div class="habit-input-row">
+        <input type="text" value="${h.name}" data-member="${m.id}" data-idx="${idx}" data-field="name" />
+        <input type="number" value="${h.points}" min="1" max="50" data-member="${m.id}" data-idx="${idx}" data-field="points" />
+        <button class="btn-remove" data-member="${m.id}" data-idx="${idx}" title="Remove">×</button>
+      </div>`;
+    });
+    
+    html += `<button class="btn-add" data-member="${m.id}">+ Add Habit</button>`;
+    html += '</div>';
+  });
+
+  // Add Member button
+  html += `<div style="text-align:center;margin:20px 0;">
+    <button id="addMember" style="padding:14px 30px;border-radius:50px;border:2px dashed var(--accent4);background:transparent;color:var(--accent4);font-family:'Fredoka',sans-serif;font-size:1.1em;font-weight:600;cursor:pointer;transition:all 0.3s;">+ Add Family Member</button>
+  </div>`;
+  
+  html += '<button class="btn-save" id="saveSettings">💾 Save Changes</button>';
+  html += '<button class="btn-save" id="resetData" style="background:linear-gradient(135deg,var(--accent1),#cc3333);margin-top:10px;font-size:0.9em;">🗑️ Reset All Data</button>';
+  
+  container.innerHTML = html;
+  
+  // ---- Event listeners ----
+
+  // Member name + habit field changes
+  container.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', function() {
+      const mid = this.dataset.member;
+      const field = this.dataset.field;
+      const member = appData.members.find(m => m.id === mid);
+      if (field === 'member-name') {
+        member.name = this.value.trim() || member.name;
+      } else if (field === 'name') {
+        const idx = parseInt(this.dataset.idx);
+        member.habits[idx].name = this.value;
+      } else if (field === 'points') {
+        const idx = parseInt(this.dataset.idx);
+        member.habits[idx].points = parseInt(this.value) || 1;
+      }
+    });
+  });
+
+  // Avatar picker toggle
+  container.querySelectorAll('.avatar-picker-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const mid = this.dataset.member;
+      const picker = document.getElementById('avatar-picker-' + mid);
+      // Close all other pickers
+      container.querySelectorAll('.avatar-picker').forEach(p => { if (p !== picker) p.classList.add('hidden'); });
+      picker.classList.toggle('hidden');
+    });
+  });
+
+  // Avatar selection
+  container.querySelectorAll('.avatar-option').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const mid = this.dataset.member;
+      const avatar = this.dataset.avatar;
+      const member = appData.members.find(m => m.id === mid);
+      member.avatar = avatar;
+      saveData();
+      renderSettings();
+      showToast(`${avatar} Avatar updated!`);
+    });
+  });
+
+  // Close avatar pickers on outside click
+  document.addEventListener('click', function closePickerHandler() {
+    container.querySelectorAll('.avatar-picker').forEach(p => p.classList.add('hidden'));
+  }, { once: false });
+
+  // Delete member
+  container.querySelectorAll('.btn-delete-member').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const mid = this.dataset.member;
+      const member = appData.members.find(m => m.id === mid);
+      if (appData.members.length <= 1) {
+        showToast('⚠️ Need at least one family member!');
+        return;
+      }
+      if (!confirm(`Remove ${member.name}? Their habit history will be kept but they won't appear in the tracker.`)) return;
+      appData.members = appData.members.filter(m => m.id !== mid);
+      if (selectedMember === mid) selectedMember = appData.members[0].id;
+      saveData();
+      render();
+      showToast(`👋 ${member.name} removed`);
+    });
+  });
+
+  // Add member
+  document.getElementById('addMember').addEventListener('click', () => {
+    const avatars = ['🦊','🐯','🦁','🐸','🌟','🎯','🔥','💎','🦄','🐻','🎮','⚡'];
+    const newMember = {
+      id: 'member_' + Date.now(),
+      name: 'New Member',
+      avatar: avatars[Math.floor(Math.random() * avatars.length)],
+      color: '#' + Math.floor(Math.random()*0xAAAAAA + 0x555555).toString(16),
+      habits: [
+        { id: 'h' + Date.now(), name: 'First habit', points: 10 }
+      ]
+    };
+    appData.members.push(newMember);
+    saveData();
+    renderSettings();
+    showToast(`🎉 ${newMember.name} added! Edit their name and habits.`);
+  });
+  
+  // Remove habit
+  container.querySelectorAll('.btn-remove').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const mid = this.dataset.member;
+      const idx = parseInt(this.dataset.idx);
+      const member = appData.members.find(m => m.id === mid);
+      if (member.habits.length <= 1) {
+        showToast('⚠️ Need at least one habit!');
+        return;
+      }
+      member.habits.splice(idx, 1);
+      saveData();
+      renderSettings();
+      showToast('🗑️ Habit removed');
+    });
+  });
+  
+  // Add habit
+  container.querySelectorAll('.btn-add').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const mid = this.dataset.member;
+      const member = appData.members.find(m => m.id === mid);
+      const newId = 'h' + Date.now();
+      member.habits.push({ id: newId, name: 'New habit', points: 10 });
+      saveData();
+      renderSettings();
+      showToast('✨ New habit added!');
+    });
+  });
+  
+  document.getElementById('saveSettings').addEventListener('click', () => {
+    saveData();
+    showToast('💾 Settings saved!');
+    render();
+  });
+  
+  document.getElementById('resetData').addEventListener('click', () => {
+    if (confirm('⚠️ This will reset ALL data including completions. Are you sure?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      loadData().then(() => {
+        render();
+      });
+      showToast('🔄 All data reset!');
+    }
+  });
+}
+
+// ========== EXPORT ==========
+
+function exportCSV() {
+  const dates = getWeekDates(currentWeekOffset);
+  let csv = 'Member,Habit,Points,' + dates.map(d => dateKey(d)).join(',') + ',Total\n';
+  
+  appData.members.forEach(m => {
+    m.habits.forEach(h => {
+      let row = `"${m.name}","${h.name}",${h.points}`;
+      let total = 0;
+      dates.forEach(d => {
+        const done = isCompleted(m.id, h.id, d);
+        row += ',' + (done ? '✓' : '✗');
+        if (done) total += h.points;
+      });
+      row += ',' + total;
+      csv += row + '\n';
+    });
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `habit-quest-week-${dateKey(getWeekDates(currentWeekOffset)[0])}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 CSV exported!');
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'habit-quest-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 JSON exported!');
+}
+
+// ========== NAVIGATION ==========
+
+function render() {
+  if (!appData) return;
+  renderMemberSelector();
+  renderWeekLabel();
+  
+  if (currentView === 'tracker') renderTracker();
+  if (currentView === 'leaderboard') renderLeaderboard();
+  if (currentView === 'settings') renderSettings();
+}
+
+// Nav tabs
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    
+    currentView = this.dataset.view;
+    
+    document.getElementById('view-tracker').classList.toggle('hidden', currentView !== 'tracker');
+    document.getElementById('view-leaderboard').classList.toggle('hidden', currentView !== 'leaderboard');
+    document.getElementById('view-settings').classList.toggle('hidden', currentView !== 'settings');
+    
+    render();
+  });
+});
+
+// Week navigation
+document.getElementById('prevWeek').addEventListener('click', () => { currentWeekOffset--; render(); });
+document.getElementById('nextWeek').addEventListener('click', () => { if (currentWeekOffset < 0) { currentWeekOffset++; render(); } });
+document.getElementById('prevWeekLB').addEventListener('click', () => { currentWeekOffset--; render(); });
+document.getElementById('nextWeekLB').addEventListener('click', () => { if (currentWeekOffset < 0) { currentWeekOffset++; render(); } });
+
+// Export
+document.getElementById('exportCSV').addEventListener('click', exportCSV);
+document.getElementById('exportJSON').addEventListener('click', exportJSON);
+
+// ========== INIT ==========
+(async function init() {
+  await loadData();
+  render();
+})();
+</script>
+</body>
+</html>
