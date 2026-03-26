@@ -1485,18 +1485,22 @@ function renderSettings() {
   });
   
   document.getElementById('saveSettings').addEventListener('click', () => {
-    saveData();
-    showToast('💾 Settings saved!');
-    render();
+    saveData().then(() => {
+      showToast('Settings saved!');
+      render();
+    });
   });
   
   document.getElementById('resetData').addEventListener('click', () => {
-    if (confirm('⚠️ This will reset ALL data including completions. Are you sure?')) {
+    if (confirm('This will reset ALL data including completions. Are you sure?')) {
       localStorage.removeItem(STORAGE_KEY);
-      loadData().then(() => {
+      appData = cloneDefaultData();
+      selectedMember = appData.members[0].id;
+      currentWeekOffset = 0;
+      saveData().then(() => {
         render();
+        showToast('All data reset!');
       });
-      showToast('🔄 All data reset!');
     }
   });
 }

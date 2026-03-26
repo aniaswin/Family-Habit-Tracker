@@ -2,11 +2,8 @@
   "name": "family-habit-tracker",
   "private": true,
   "version": "1.0.0",
-  "description": "Family habit tracker deployed on Vercel with Google Sheets storage.",
+  "description": "Family habit tracker deployed on Vercel with Supabase storage.",
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-    "googleapis": "^144.0.0"
   }
 }

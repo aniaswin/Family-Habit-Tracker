@@ -1,6 +1,6 @@
 # Family Habit Tracker
 
-This project serves the front end from [`index.html`](/C:/Family%20Habit%20Tracker/index.html) and keeps the original copy in [`Web-App.html`](/C:/Family%20Habit%20Tracker/Web-App.html). It also adds Vercel API routes that store data in Google Sheets.
+This project serves the front end from [`index.html`](/C:/Family%20Habit%20Tracker/index.html) and keeps the original copy in [`Web-App.html`](/C:/Family%20Habit%20Tracker/Web-App.html). It also adds Vercel API routes that store data in Supabase.
 
 ## What changed
 
@@ -8,30 +8,21 @@ This project serves the front end from [`index.html`](/C:/Family%20Habit%20Track
 - If the API is unavailable, the app falls back to `localStorage` so the file still works locally.
 - Vercel serves `index.html` directly, which is the simplest deployment shape for static hosting.
 
-## Google Sheets setup
+## Supabase setup
 
-1. Create a Google Cloud project.
-2. Enable the Google Sheets API.
-3. Create a service account.
-4. Create a JSON key for that service account.
-5. Create a Google Sheet and copy its spreadsheet ID from the URL.
-6. Share the sheet with the service account email as an editor.
-
-The API will create these tabs automatically if they do not exist:
-
-- `members`
-- `habits`
-- `completions`
+1. Create a Supabase project.
+2. Open the SQL Editor.
+3. Run the SQL in [`supabase-schema.sql`](/C:/Family%20Habit%20Tracker/supabase-schema.sql).
+4. Copy your project URL and service role key from the Supabase dashboard.
 
 ## Vercel environment variables
 
 Add these in the Vercel project settings:
 
-- `GOOGLE_SHEET_ID`
-- `GOOGLE_SHEETS_CLIENT_EMAIL`
-- `GOOGLE_SHEETS_PRIVATE_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-For `GOOGLE_SHEETS_PRIVATE_KEY`, paste the private key exactly as provided in the JSON key. If you add it through the Vercel UI, keep the line breaks intact.
+Keep the service role key only in Vercel server-side environment variables. Do not expose it in browser code.
 
 ## Deploy to Vercel
 

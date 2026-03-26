@@ -1,9 +1,4 @@
-const { google } = require('googleapis');
 const { cloneDefaultData } = require('./default-data');
-
-const MEMBER_HEADERS = ['id', 'name', 'avatar', 'color'];
-const HABIT_HEADERS = ['memberId', 'habitId', 'name', 'points'];
-const COMPLETION_HEADERS = ['memberId', 'habitId', 'date', 'completed'];
 
 function getEnv(name) {
   const value = process.env[name];
@@ -11,6 +6,40 @@ function getEnv(name) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
+}
+
+function getBaseUrl() {
+  return `${getEnv('SUPABASE_URL').replace(/\/$/, '')}/rest/v1`;
+}
+
+function getHeaders(extra = {}) {
+  const key = getEnv('SUPABASE_SERVICE_ROLE_KEY');
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    'Content-Type': 'application/json',
+    ...extra
+  };
+}
+
+async function supabaseRequest(path, options = {}) {
+  const response = await fetch(`${getBaseUrl()}${path}`, {
+    headers: getHeaders(options.headers || {}),
+    method: options.method || 'GET',
+    body: options.body,
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Supabase request failed with ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
 }
 
 function normalizeData(data) {
@@ -37,162 +66,117 @@ function normalizeData(data) {
   return next;
 }
 
-function createSheetsClient() {
-  const credentials = {
-    client_email: getEnv('GOOGLE_SHEETS_CLIENT_EMAIL'),
-    private_key: getEnv('GOOGLE_SHEETS_PRIVATE_KEY').replace(/\\n/g, '\n')
-  };
+function buildDataFromRows(memberRows, habitRows, completionRows) {
+  const members = memberRows.map(row => ({
+    id: row.id,
+    name: row.name,
+    avatar: row.avatar,
+    color: row.color,
+    habits: []
+  }));
 
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+  const memberMap = new Map(members.map(member => [member.id, member]));
+  habitRows.forEach(row => {
+    const member = memberMap.get(row.member_id);
+    if (!member) return;
+    member.habits.push({
+      id: row.id,
+      name: row.name || 'Habit',
+      points: Math.max(1, parseInt(row.points, 10) || 1)
+    });
   });
 
-  return google.sheets({ version: 'v4', auth });
+  const completions = {};
+  completionRows.forEach(row => {
+    if (!row.member_id || !row.habit_id || !row.date || !row.completed) return;
+    completions[`${row.member_id}:${row.habit_id}:${row.date}`] = true;
+  });
+
+  return normalizeData({ members, completions });
 }
 
-async function ensureSheetExists(sheets, spreadsheetId, title) {
-  const metadata = await sheets.spreadsheets.get({ spreadsheetId });
-  const exists = (metadata.data.sheets || []).some(sheet => sheet.properties && sheet.properties.title === title);
-  if (exists) return;
+async function seedDefaultData() {
+  const seeded = cloneDefaultData();
+  await writeAppData(seeded);
+  return seeded;
+}
 
-  await sheets.spreadsheets.batchUpdate({
-    spreadsheetId,
-    requestBody: {
-      requests: [
-        {
-          addSheet: {
-            properties: { title }
-          }
-        }
-      ]
+async function readAppData() {
+  const [members, habits, completions] = await Promise.all([
+    supabaseRequest('/members?select=id,name,avatar,color&order=sort_order.asc.nullslast,created_at.asc.nullslast,id.asc'),
+    supabaseRequest('/habits?select=id,member_id,name,points&order=member_id.asc,sort_order.asc.nullslast,created_at.asc.nullslast,id.asc'),
+    supabaseRequest('/completions?select=member_id,habit_id,date,completed')
+  ]);
+
+  if (!members.length || !habits.length) {
+    return seedDefaultData();
+  }
+
+  return buildDataFromRows(members, habits, completions);
+}
+
+async function replaceTable(table, matchColumn) {
+  await supabaseRequest(`/${table}?${matchColumn}=not.is.null`, {
+    method: 'DELETE',
+    headers: {
+      Prefer: 'return=minimal'
     }
   });
 }
 
-async function ensureWorkbookShape(sheets, spreadsheetId) {
-  await ensureSheetExists(sheets, spreadsheetId, 'members');
-  await ensureSheetExists(sheets, spreadsheetId, 'habits');
-  await ensureSheetExists(sheets, spreadsheetId, 'completions');
-}
+async function insertRows(table, rows) {
+  if (!rows.length) return;
 
-async function getValues(sheets, spreadsheetId, range) {
-  const response = await sheets.spreadsheets.values.get({ spreadsheetId, range });
-  return response.data.values || [];
-}
-
-async function clearRange(sheets, spreadsheetId, range) {
-  await sheets.spreadsheets.values.clear({
-    spreadsheetId,
-    range
-  });
-}
-
-async function updateRange(sheets, spreadsheetId, range, values) {
-  await sheets.spreadsheets.values.update({
-    spreadsheetId,
-    range,
-    valueInputOption: 'RAW',
-    requestBody: { values }
-  });
-}
-
-function buildMembersFromRows(memberRows, habitRows) {
-  const members = memberRows.map(([id, name, avatar, color]) => ({
-    id,
-    name,
-    avatar,
-    color,
-    habits: []
-  })).filter(member => member.id);
-
-  const memberMap = new Map(members.map(member => [member.id, member]));
-  habitRows.forEach(([memberId, habitId, name, points]) => {
-    const member = memberMap.get(memberId);
-    if (!member || !habitId) return;
-    member.habits.push({
-      id: habitId,
-      name: name || 'Habit',
-      points: Math.max(1, parseInt(points, 10) || 1)
-    });
-  });
-
-  return members;
-}
-
-function buildCompletionsFromRows(rows) {
-  const completions = {};
-  rows.forEach(([memberId, habitId, date, completed]) => {
-    if (!memberId || !habitId || !date) return;
-    if (String(completed).toLowerCase() !== 'true') return;
-    completions[`${memberId}:${habitId}:${date}`] = true;
-  });
-  return completions;
-}
-
-async function readAppData() {
-  const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
-  const sheets = createSheetsClient();
-  await ensureWorkbookShape(sheets, spreadsheetId);
-
-  const [memberRows, habitRows, completionRows] = await Promise.all([
-    getValues(sheets, spreadsheetId, 'members!A2:D'),
-    getValues(sheets, spreadsheetId, 'habits!A2:D'),
-    getValues(sheets, spreadsheetId, 'completions!A2:D')
-  ]);
-
-  if (!memberRows.length || !habitRows.length) {
-    const seeded = cloneDefaultData();
-    await writeAppData(seeded);
-    return seeded;
-  }
-
-  return normalizeData({
-    members: buildMembersFromRows(memberRows, habitRows),
-    completions: buildCompletionsFromRows(completionRows)
+  await supabaseRequest(`/${table}`, {
+    method: 'POST',
+    headers: {
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(rows)
   });
 }
 
 async function writeAppData(data) {
-  const spreadsheetId = getEnv('GOOGLE_SHEET_ID');
-  const sheets = createSheetsClient();
   const normalized = normalizeData(data);
-  await ensureWorkbookShape(sheets, spreadsheetId);
 
-  const memberValues = [
-    MEMBER_HEADERS,
-    ...normalized.members.map(member => [member.id, member.name, member.avatar, member.color])
-  ];
+  const memberRows = normalized.members.map((member, index) => ({
+    id: member.id,
+    name: member.name,
+    avatar: member.avatar,
+    color: member.color,
+    sort_order: index
+  }));
 
-  const habitValues = [
-    HABIT_HEADERS,
-    ...normalized.members.flatMap(member =>
-      member.habits.map(habit => [member.id, habit.id, habit.name, String(habit.points)])
-    )
-  ];
+  const habitRows = normalized.members.flatMap(member =>
+    member.habits.map((habit, index) => ({
+      id: habit.id,
+      member_id: member.id,
+      name: habit.name,
+      points: habit.points,
+      sort_order: index
+    }))
+  );
 
-  const completionValues = [
-    COMPLETION_HEADERS,
-    ...Object.keys(normalized.completions)
-      .filter(key => normalized.completions[key])
-      .sort()
-      .map(key => {
-        const [memberId, habitId, date] = key.split(':');
-        return [memberId, habitId, date, 'true'];
-      })
-  ];
+  const completionRows = Object.keys(normalized.completions)
+    .filter(key => normalized.completions[key])
+    .sort()
+    .map(key => {
+      const [memberId, habitId, date] = key.split(':');
+      return {
+        member_id: memberId,
+        habit_id: habitId,
+        date,
+        completed: true
+      };
+    });
 
-  await Promise.all([
-    clearRange(sheets, spreadsheetId, 'members!A:D'),
-    clearRange(sheets, spreadsheetId, 'habits!A:D'),
-    clearRange(sheets, spreadsheetId, 'completions!A:D')
-  ]);
+  await replaceTable('completions', 'member_id');
+  await replaceTable('habits', 'id');
+  await replaceTable('members', 'id');
 
-  await Promise.all([
-    updateRange(sheets, spreadsheetId, 'members!A1', memberValues),
-    updateRange(sheets, spreadsheetId, 'habits!A1', habitValues),
-    updateRange(sheets, spreadsheetId, 'completions!A1', completionValues)
-  ]);
+  await insertRows('members', memberRows);
+  await insertRows('habits', habitRows);
+  await insertRows('completions', completionRows);
 
   return normalized;
 }
