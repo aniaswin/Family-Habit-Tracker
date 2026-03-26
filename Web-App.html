@@ -993,6 +993,24 @@ function saveData() {
   return savePromise;
 }
 
+async function persistSettings(message, rerender = 'settings') {
+  await saveData();
+
+  if (dataSource === 'remote') {
+    await loadData();
+  }
+
+  if (rerender === 'full') {
+    render();
+  } else {
+    renderSettings();
+  }
+
+  if (message) {
+    showToast(message);
+  }
+}
+
 function getWeekDates(offset = 0) {
   const now = new Date();
   const day = now.getDay();
@@ -1402,14 +1420,12 @@ function renderSettings() {
 
   // Avatar selection
   container.querySelectorAll('.avatar-option').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const mid = this.dataset.member;
       const avatar = this.dataset.avatar;
       const member = appData.members.find(m => m.id === mid);
       member.avatar = avatar;
-      saveData();
-      renderSettings();
-      showToast(`${avatar} Avatar updated!`);
+      await persistSettings(`${avatar} Avatar updated!`);
     });
   });
 
@@ -1420,7 +1436,7 @@ function renderSettings() {
 
   // Delete member
   container.querySelectorAll('.btn-delete-member').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const mid = this.dataset.member;
       const member = appData.members.find(m => m.id === mid);
       if (appData.members.length <= 1) {
@@ -1430,14 +1446,12 @@ function renderSettings() {
       if (!confirm(`Remove ${member.name}? Their habit history will be kept but they won't appear in the tracker.`)) return;
       appData.members = appData.members.filter(m => m.id !== mid);
       if (selectedMember === mid) selectedMember = appData.members[0].id;
-      saveData();
-      render();
-      showToast(`👋 ${member.name} removed`);
+      await persistSettings(`${member.name} removed`, 'full');
     });
   });
 
   // Add member
-  document.getElementById('addMember').addEventListener('click', () => {
+  document.getElementById('addMember').addEventListener('click', async () => {
     const avatars = ['🦊','🐯','🦁','🐸','🌟','🎯','🔥','💎','🦄','🐻','🎮','⚡'];
     const newMember = {
       id: 'member_' + Date.now(),
@@ -1449,14 +1463,12 @@ function renderSettings() {
       ]
     };
     appData.members.push(newMember);
-    saveData();
-    renderSettings();
-    showToast(`🎉 ${newMember.name} added! Edit their name and habits.`);
+    await persistSettings(`${newMember.name} added! Edit their name and habits.`);
   });
   
   // Remove habit
   container.querySelectorAll('.btn-remove').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const mid = this.dataset.member;
       const idx = parseInt(this.dataset.idx);
       const member = appData.members.find(m => m.id === mid);
@@ -1465,30 +1477,23 @@ function renderSettings() {
         return;
       }
       member.habits.splice(idx, 1);
-      saveData();
-      renderSettings();
-      showToast('🗑️ Habit removed');
+      await persistSettings('Habit removed');
     });
   });
   
   // Add habit
   container.querySelectorAll('.btn-add').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const mid = this.dataset.member;
       const member = appData.members.find(m => m.id === mid);
       const newId = 'h' + Date.now();
       member.habits.push({ id: newId, name: 'New habit', points: 10 });
-      saveData();
-      renderSettings();
-      showToast('✨ New habit added!');
+      await persistSettings('New habit added!');
     });
   });
   
-  document.getElementById('saveSettings').addEventListener('click', () => {
-    saveData().then(() => {
-      showToast('Settings saved!');
-      render();
-    });
+  document.getElementById('saveSettings').addEventListener('click', async () => {
+    await persistSettings('Settings saved!', 'full');
   });
   
   document.getElementById('resetData').addEventListener('click', () => {
@@ -1497,10 +1502,7 @@ function renderSettings() {
       appData = cloneDefaultData();
       selectedMember = appData.members[0].id;
       currentWeekOffset = 0;
-      saveData().then(() => {
-        render();
-        showToast('All data reset!');
-      });
+      persistSettings('All data reset!', 'full');
     }
   });
 }
