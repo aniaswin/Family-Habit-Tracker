@@ -30,16 +30,21 @@ async function supabaseRequest(path, options = {}) {
     cache: 'no-store'
   });
 
+  const text = await response.text();
+
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Supabase request failed with ${response.status}`);
+    throw new Error(`Supabase ${options.method || 'GET'} ${path} failed (${response.status}): ${text || '<empty body>'}`);
   }
 
-  if (response.status === 204) {
+  if (response.status === 204 || !text.trim()) {
     return null;
   }
 
-  return response.json();
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`Supabase ${options.method || 'GET'} ${path} returned invalid JSON (${response.status}): ${text.slice(0, 200) || '<empty body>'}`);
+  }
 }
 
 function normalizeData(data) {
@@ -108,11 +113,15 @@ async function readAppData() {
     supabaseRequest('/completions?select=member_id,habit_id,date,completed')
   ]);
 
-  if (!members.length || !habits.length) {
+  const safeMembers = Array.isArray(members) ? members : [];
+  const safeHabits = Array.isArray(habits) ? habits : [];
+  const safeCompletions = Array.isArray(completions) ? completions : [];
+
+  if (!safeMembers.length || !safeHabits.length) {
     return seedDefaultData();
   }
 
-  return buildDataFromRows(members, habits, completions);
+  return buildDataFromRows(safeMembers, safeHabits, safeCompletions);
 }
 
 async function replaceTable(table, matchColumn) {
