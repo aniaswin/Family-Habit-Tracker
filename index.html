@@ -676,6 +676,65 @@ body::before {
   transform: translateX(-50%) translateY(0);
 }
 
+.sync-indicator {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 1001;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(26,25,50,0.92);
+  border: 1px solid var(--surface2);
+  color: var(--text-dim);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.9em;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+.sync-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sync-indicator.syncing {
+  color: var(--accent4);
+  border-color: rgba(77,150,255,0.55);
+}
+
+.sync-indicator.synced {
+  color: var(--accent3);
+  border-color: rgba(107,203,119,0.55);
+}
+
+.sync-indicator.offline {
+  color: var(--accent1);
+  border-color: rgba(255,107,107,0.55);
+}
+
+.sync-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.sync-indicator.syncing .sync-dot {
+  animation: syncPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes syncPulse {
+  0%, 100% { transform: scale(0.8); opacity: 0.65; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
 /* Export button */
 .export-section {
   text-align: center;
@@ -803,6 +862,10 @@ body::before {
 
 <div class="toast" id="toast"></div>
 <div class="confetti-container" id="confetti"></div>
+<div class="sync-indicator" id="syncIndicator">
+  <span class="sync-dot"></span>
+  <span id="syncLabel">Syncing...</span>
+</div>
 
 <script>
 // ========== DATA LAYER ==========
@@ -889,6 +952,11 @@ let selectedMember = 'kabir';
 let currentWeekOffset = 0;
 let dataSource = 'remote';
 let savePromise = Promise.resolve();
+let toggleSyncPromise = Promise.resolve();
+let audioContext;
+let clapNoiseBuffer;
+let pendingSyncCount = 0;
+let syncStatusTimer;
 
 function cloneDefaultData() {
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -918,6 +986,57 @@ function normalizeData(data) {
   return next;
 }
 
+function persistLocalSnapshot() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeData(appData)));
+  } catch (localError) {
+    console.warn('Local snapshot save failed', localError);
+  }
+}
+
+function setSyncIndicator(state, message) {
+  const indicator = document.getElementById('syncIndicator');
+  const label = document.getElementById('syncLabel');
+  if (!indicator || !label) return;
+
+  indicator.classList.remove('syncing', 'synced', 'offline', 'visible');
+  label.textContent = message;
+
+  if (syncStatusTimer) {
+    clearTimeout(syncStatusTimer);
+    syncStatusTimer = null;
+  }
+
+  if (state === 'hidden') {
+    return;
+  }
+
+  indicator.classList.add('visible', state);
+
+  if (state === 'synced') {
+    syncStatusTimer = setTimeout(() => {
+      indicator.classList.remove('visible', 'synced');
+    }, 1400);
+  }
+}
+
+function beginSync(message = 'Syncing...') {
+  pendingSyncCount += 1;
+  setSyncIndicator('syncing', message);
+}
+
+function completeSync() {
+  pendingSyncCount = Math.max(0, pendingSyncCount - 1);
+  if (pendingSyncCount === 0) {
+    setSyncIndicator('synced', 'Synced');
+  }
+}
+
+function failSync(message = 'Offline') {
+  pendingSyncCount = 0;
+  setSyncIndicator('offline', message);
+}
+
 async function apiRequest(path, options = {}) {
   const response = await fetch(path, {
     headers: {
@@ -941,14 +1060,100 @@ async function apiRequest(path, options = {}) {
   return response.json();
 }
 
+function getAudioContext() {
+  if (!audioContext) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    audioContext = new AudioCtx();
+  }
+
+  if (audioContext.state === 'suspended') {
+    audioContext.resume().catch(() => {});
+  }
+
+  return audioContext;
+}
+
+function playTingSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const gain = ctx.createGain();
+  const osc1 = ctx.createOscillator();
+  const osc2 = ctx.createOscillator();
+
+  osc1.type = 'sine';
+  osc2.type = 'triangle';
+  osc1.frequency.setValueAtTime(1320, now);
+  osc2.frequency.setValueAtTime(1760, now);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+
+  osc1.connect(gain);
+  osc2.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc1.start(now);
+  osc2.start(now + 0.015);
+  osc1.stop(now + 0.24);
+  osc2.stop(now + 0.24);
+}
+
+function getClapNoiseBuffer(ctx) {
+  if (clapNoiseBuffer) return clapNoiseBuffer;
+
+  const length = Math.floor(ctx.sampleRate * 0.25);
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const channel = buffer.getChannelData(0);
+
+  for (let i = 0; i < length; i++) {
+    channel[i] = (Math.random() * 2 - 1) * (1 - i / length);
+  }
+
+  clapNoiseBuffer = buffer;
+  return clapNoiseBuffer;
+}
+
+function playClapSound() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const baseTime = ctx.currentTime;
+  [0, 0.08, 0.16, 0.24].forEach((offset, index) => {
+    const source = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    const gain = ctx.createGain();
+
+    source.buffer = getClapNoiseBuffer(ctx);
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(900 + index * 120, baseTime + offset);
+
+    gain.gain.setValueAtTime(0.0001, baseTime + offset);
+    gain.gain.exponentialRampToValueAtTime(0.22 - index * 0.03, baseTime + offset + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, baseTime + offset + 0.16);
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    source.start(baseTime + offset);
+    source.stop(baseTime + offset + 0.18);
+  });
+}
+
 async function loadData() {
   try {
     const remoteData = await apiRequest('/api/data');
     appData = normalizeData(remoteData);
     dataSource = 'remote';
+    setSyncIndicator('hidden', '');
   } catch (remoteError) {
     console.warn('Remote load failed, falling back to local storage.', remoteError);
     dataSource = 'local';
+    failSync('Offline mode');
 
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -970,15 +1175,18 @@ function saveData() {
     appData = snapshot;
 
     if (dataSource === 'remote') {
+      beginSync('Syncing settings...');
       try {
         await apiRequest('/api/save-settings', {
           method: 'POST',
           body: JSON.stringify(snapshot)
         });
+        completeSync();
         return;
       } catch (remoteError) {
         console.warn('Remote save failed, falling back to local storage.', remoteError);
         dataSource = 'local';
+        failSync('Offline mode');
         showToast('Cloud sync unavailable. Saving locally for now.');
       }
     }
@@ -1060,33 +1268,53 @@ function isCompleted(memberId, habitId, date) {
   return !!appData.completions[completionKey(memberId, habitId, date)];
 }
 
-async function toggleCompletion(memberId, habitId, date) {
-  if (dataSource === 'remote') {
-    try {
-      const updated = await apiRequest('/api/toggle', {
-        method: 'POST',
-        body: JSON.stringify({
-          memberId,
-          habitId,
-          date: dateKey(date)
-        })
-      });
-      appData = normalizeData(updated);
-      return;
-    } catch (remoteError) {
-      console.warn('Remote toggle failed, falling back to local save.', remoteError);
-      dataSource = 'local';
-      showToast('Cloud sync unavailable. Saving locally for now.');
-    }
-  }
-
+function toggleCompletion(memberId, habitId, date) {
   const key = completionKey(memberId, habitId, date);
-  if (appData.completions[key]) {
+  const wasCompleted = !!appData.completions[key];
+  const beforePoints = getMemberDayPoints(memberId, date);
+
+  if (wasCompleted) {
     delete appData.completions[key];
   } else {
     appData.completions[key] = true;
   }
-  await saveData();
+
+  const afterPoints = getMemberDayPoints(memberId, date);
+
+  persistLocalSnapshot();
+
+  if (!wasCompleted) {
+    playTingSound();
+    if (afterPoints.earned > 50 && beforePoints.earned <= 50) {
+      playClapSound();
+    }
+  }
+
+  if (dataSource === 'remote') {
+    const payload = {
+      memberId,
+      habitId,
+      date: dateKey(date)
+    };
+
+    toggleSyncPromise = toggleSyncPromise.then(async () => {
+      beginSync('Syncing...');
+      try {
+        await apiRequest('/api/toggle', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        completeSync();
+      } catch (remoteError) {
+        console.warn('Remote toggle failed, falling back to local save.', remoteError);
+        dataSource = 'local';
+        failSync('Offline mode');
+        showToast('Cloud sync unavailable. Saving locally for now.');
+      }
+    });
+  }
+
+  return { wasCompleted, isCompleted: !wasCompleted };
 }
 
 function getMemberWeeklyPoints(memberId, weekOffset) {
